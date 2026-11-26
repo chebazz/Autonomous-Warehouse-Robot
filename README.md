@@ -51,6 +51,7 @@ map ─(AMCL / slam_toolbox)→ odom ─(EKF)→ base_footprint → base_link �
 ## Uso
 
 ```bash
+mkdir ~/amr_ws
 git clone https://github.com/chebazz/Autonomous-Warehouse-Robot.git ~/amr_ws
 cd ~/amr_ws
 colcon build --symlink-install
