@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<!--
+  Sensores del AMR
+    - 2 x LiDAR 2D de 270° en esquinas diagonales → cobertura de 360°
+        lidar_front_link : esquina delantera-izquierda, orientado a +45°
+        lidar_rear_link  : esquina trasera-derecha,     orientado a -135°
+    - IMU en el centro geométrico del AMR (imu_link)
+
+  Los LiDAR también alimentarán el protocolo de seguridad (parada total
+  cuando un objeto/persona entre en la zona de protección).
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:gz="http://gazebosim.org/schema">
+
+  <!-- ===================== LIDAR ===================== -->
+  <xacro:macro name="amr_lidar" params="name x y yaw">
+
+    <link name="${name}_link">
+      <!-- Cabezal óptico -->
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><cylinder radius="${lidar_radius}" length="${lidar_height}"/></geometry>
+        <material name="amr_black"/>
+      </visual>
+      <!-- Ventana (franja) indicando el frente del sensor -->
+      <visual>
+        <origin xyz="${lidar_radius - 0.005} 0 0" rpy="0 0 0"/>
+        <geometry><box size="0.012 0.04 0.02"/></geometry>
+        <material name="amr_safety_red"/>
+      </visual>
+      <!-- Soporte hasta el fondo de la muesca -->
+      <visual>
+        <origin xyz="0 0 ${-(lidar_z - chassis_bottom_z)/2.0 - lidar_height/4.0}" rpy="0 0 0"/>
+        <geometry><box size="0.08 0.08 ${lidar_z - chassis_bottom_z - lidar_height/2.0}"/></geometry>
+        <material name="amr_dark"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><cylinder radius="${lidar_radius}" length="${lidar_height}"/></geometry>
+      </collision>
+      <xacro:cylinder_inertia m="${lidar_mass}" r="${lidar_radius}" h="${lidar_height}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:cylinder_inertia>
+    </link>
+
+    <joint name="${name}_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="${name}_link"/>
+      <origin xyz="${x} ${y} ${lidar_z - base_link_z}" rpy="0 0 ${yaw}"/>
+    </joint>
+
+    <gazebo reference="${name}_link">
+      <sensor name="${name}" type="gpu_lidar">
+        <topic>${name}/scan</topic>
+        <gz_frame_id>${name}_link</gz_frame_id>
+        <update_rate>${lidar_rate}</update_rate>
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>${lidar_samples}</samples>
+              <resolution>1</resolution>
+              <min_angle>${-lidar_fov/2.0}</min_angle>
+              <max_angle>${lidar_fov/2.0}</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>0</min_angle>
+              <max_angle>0</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>${lidar_range_min}</min>
+            <max>${lidar_range_max}</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- ===================== IMU ===================== -->
+  <xacro:macro name="amr_imu">
+    <link name="imu_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><box size="0.04 0.04 0.02"/></geometry>
+        <material name="amr_safety_red"/>
+      </visual>
+      <xacro:box_inertia m="0.05" x="0.04" y="0.04" z="0.02">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+
+    <joint name="imu_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="imu_link"/>
+      <origin xyz="0 0 ${imu_z - base_link_z}" rpy="0 0 0"/>
+    </joint>
+
+    <gazebo reference="imu_link">
+      <sensor name="imu" type="imu">
+        <topic>imu/data</topic>
+        <gz_frame_id>imu_link</gz_frame_id>
+        <update_rate>${imu_rate}</update_rate>
+        <always_on>true</always_on>
+        <imu>
+          <angular_velocity>
+            <x><noise type="gaussian"><mean>0</mean><stddev>2e-4</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0</mean><stddev>2e-4</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0</mean><stddev>2e-4</stddev></noise></z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x><noise type="gaussian"><mean>0</mean><stddev>1.7e-2</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0</mean><stddev>1.7e-2</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0</mean><stddev>1.7e-2</stddev></noise></z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+</robot>

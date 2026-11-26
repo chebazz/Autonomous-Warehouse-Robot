@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ===================== MATERIALES ===================== -->
+  <material name="amr_yellow"><color rgba="0.95 0.70 0.05 1.0"/></material>
+  <material name="amr_dark"><color rgba="0.15 0.15 0.17 1.0"/></material>
+  <material name="amr_grey"><color rgba="0.55 0.57 0.60 1.0"/></material>
+  <material name="amr_steel"><color rgba="0.75 0.77 0.80 1.0"/></material>
+  <material name="amr_black"><color rgba="0.05 0.05 0.05 1.0"/></material>
+  <material name="amr_rubber"><color rgba="0.10 0.10 0.10 1.0"/></material>
+  <material name="amr_safety_red"><color rgba="0.85 0.10 0.10 1.0"/></material>
+
+  <!-- ===================== INERCIAS ===================== -->
+  <xacro:macro name="box_inertia" params="m x y z *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${m*(y*y+z*z)/12.0}" ixy="0" ixz="0"
+               iyy="${m*(x*x+z*z)/12.0}" iyz="0"
+               izz="${m*(x*x+y*y)/12.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Cilindro con eje a lo largo de Z local (aplicar rotación en origin) -->
+  <xacro:macro name="cylinder_inertia" params="m r h *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${m*(3*r*r+h*h)/12.0}" ixy="0" ixz="0"
+               iyy="${m*(3*r*r+h*h)/12.0}" iyz="0"
+               izz="${m*r*r/2.0}"/>
+    </inertial>
+  </xacro:macro>
+
+</robot>

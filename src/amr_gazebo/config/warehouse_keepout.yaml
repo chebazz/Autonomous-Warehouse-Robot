@@ -1,0 +1,11 @@
+# ARCHIVO GENERADO por scripts/generate_warehouse.py — no editar a mano.
+# Zonas prohibidas para la navegación [x_min, x_max, y_min, y_max] (frame map).
+# Las usa amr_navigation/scripts/make_keepout_map.py.
+zones:
+  - {name: rack_A, box: [-19.60, -3.00, 10.50, 11.80]}
+  - {name: rack_B, box: [-19.60, -3.00, 4.70, 7.30]}
+  - {name: rack_C, box: [-19.60, -3.00, -1.10, 1.50]}
+  - {name: rack_D, box: [-19.60, -3.00, -5.60, -4.30]}
+  - {name: block_storage, box: [2.60, 10.20, 8.90, 12.00]}
+  - {name: office, box: [13.95, 20.00, 6.45, 12.00]}
+  - {name: conveyor, box: [17.70, 20.00, -10.65, -4.40]}

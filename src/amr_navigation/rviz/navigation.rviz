@@ -1,0 +1,108 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 50
+      Color: 120; 120; 124
+    - Class: rviz_default_plugins/Map
+      Name: Map
+      Enabled: true
+      Topic:
+        Value: /map
+        Durability Policy: Transient Local
+      Alpha: 0.8
+      Color Scheme: map
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+    - Class: rviz_default_plugins/LaserScan
+      Name: Scan360
+      Enabled: true
+      Topic:
+        Value: /scan
+        Reliability Policy: Best Effort
+      Color Transformer: FlatColor
+      Color: 255; 40; 40
+      Size (m): 0.05
+      Style: Points
+    - Class: rviz_default_plugins/Odometry
+      Name: OdometriaEKF
+      Enabled: true
+      Topic:
+        Value: /odom
+      Keep: 1
+      Shape:
+        Value: Arrow
+      Covariance:
+        Value: false
+    - Class: rviz_default_plugins/Map
+      Name: GlobalCostmap
+      Enabled: true
+      Topic:
+        Value: /global_costmap/costmap
+      Alpha: 0.35
+      Color Scheme: costmap
+    - Class: rviz_default_plugins/Map
+      Name: LocalCostmap
+      Enabled: true
+      Topic:
+        Value: /local_costmap/costmap
+      Alpha: 0.5
+      Color Scheme: costmap
+    - Class: rviz_default_plugins/Path
+      Name: GlobalPlan
+      Enabled: true
+      Topic:
+        Value: /plan
+      Color: 30; 200; 255
+      Line Width: 0.05
+    - Class: rviz_default_plugins/Polygon
+      Name: Footprint
+      Enabled: true
+      Topic:
+        Value: /local_costmap/published_footprint
+      Color: 0; 255; 120
+    - Class: rviz_default_plugins/PoseArray
+      Name: AMCLParticles
+      Enabled: true
+      Topic:
+        Value: /particle_cloud
+        Reliability Policy: Best Effort
+      Color: 255; 200; 0
+      Arrow Length: 0.15
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Stations
+      Enabled: true
+      Topic:
+        Value: /amr/stations_markers
+  Global Options:
+    Fixed Frame: map
+    Background Color: 40; 40; 44
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /goal_pose
+    - Class: rviz_default_plugins/Measure
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Scale: 22
+      X: 0
+      Y: 0
+Window Geometry:
+  Width: 1500
+  Height: 950

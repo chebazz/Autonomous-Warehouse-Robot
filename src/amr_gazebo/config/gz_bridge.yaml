@@ -1,0 +1,31 @@
+# Puente Gazebo <-> ROS 2
+- ros_topic_name: /clock
+  gz_topic_name: /clock
+  ros_type_name: rosgraph_msgs/msg/Clock
+  gz_type_name: gz.msgs.Clock
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /lidar_front/scan
+  gz_topic_name: /lidar_front/scan
+  ros_type_name: sensor_msgs/msg/LaserScan
+  gz_type_name: gz.msgs.LaserScan
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /lidar_rear/scan
+  gz_topic_name: /lidar_rear/scan
+  ros_type_name: sensor_msgs/msg/LaserScan
+  gz_type_name: gz.msgs.LaserScan
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /imu/data
+  gz_topic_name: /imu/data
+  ros_type_name: sensor_msgs/msg/Imu
+  gz_type_name: gz.msgs.IMU
+  direction: GZ_TO_ROS
+
+# Consigna de las etapas visuales del mástil (h/4), desde lift_stage_relay.py
+- ros_topic_name: /amr/lift_stage_cmd
+  gz_topic_name: /amr/lift_stage_cmd
+  ros_type_name: std_msgs/msg/Float64
+  gz_type_name: gz.msgs.Double
+  direction: ROS_TO_GZ

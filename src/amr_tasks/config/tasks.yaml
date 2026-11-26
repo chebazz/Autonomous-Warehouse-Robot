@@ -1,0 +1,17 @@
+# Cola de tareas inicial del AMR.
+# Cada tarea = un viaje: palet del ÁREA DE CARGA → estación libre del área destino.
+#
+# Opción A — viajes cíclicos: 'trips' viajes repartiendo entre 'destinations'
+#   (viaje 1 → area_1, viaje 2 → area_2, viaje 3 → area_3, viaje 4 → area_1, ...)
+trips: 4
+destinations: [area_1, area_2, area_3]
+
+# Opción B — lista explícita (se añade después de los viajes cíclicos).
+#   pickup: estación concreta (P1..P4) u omitirlo para el siguiente palet disponible
+# tasks:
+#   - {destination: area_1}
+#   - {pickup: P3, destination: area_2}
+tasks: []
+
+# Pose de espera al terminar la cola [x, y, yaw] en el frame map
+home: [0.0, 0.0, 0.0]

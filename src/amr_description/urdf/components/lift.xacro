@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<!--
+  Elevador de la plataforma de carga.
+
+  ARQUITECTURA
+    - lift_joint (prismática, 0 .. 1.00 m): ÚNICA articulación actuada y la que
+      soporta la carga. Su posición ES la altura de elevación.
+          base_link ══ lift_joint ══► lift_platform_link ─► load_surface_link
+
+    - Mástil telescópico de 4 etapas (doble columna delantera/trasera): cadena
+      paralela solo VISUAL (sin colisión, no soporta carga).
+          base_link ─ lift_stage1 ─ lift_stage2 ─ lift_stage3 ─ lift_stage4
+      Cada etapa extiende h/4 (mimic de lift_joint, multiplicador 0.25):
+        · RViz: robot_state_publisher calcula los mimic automáticamente.
+        · Gazebo: JointPositionController (por fuerza) sigue /amr/lift_stage_cmd,
+          que publica el nodo lift_stage_relay.py.
+      (Probado: con varias prismáticas actuadas o con mimic gestionado por
+      gz_ros2_control, el elevador quedaba bloqueado en Gazebo/DART.)
+
+  Altura de la plataforma (cara superior de los tacos) sobre el suelo:
+    plegada  : 0.408 m   (pasa bajo estaciones de palet con > 0.42 m libres)
+    extendida: 1.408 m
+
+  Comando:  ros2 run amr_gazebo lift_cmd.py 1.0     (1.0 m a 0.05 m/s)
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="tube_sizes" value="${[0.20, 0.17, 0.14, 0.11]}"/>
+  <xacro:property name="lift_stroke" value="${lift_stages * lift_stage_stroke}"/>
+
+  <!-- ===== Etapa visual del mástil (2 tubos: delantero y trasero) ===== -->
+  <xacro:macro name="lift_stage" params="index parent origin_z">
+    <xacro:property name="s" value="${tube_sizes[index-1]}"/>
+
+    <link name="lift_stage${index}_link">
+      <xacro:macro name="tube" params="x">
+        <visual>
+          <origin xyz="${x} 0 ${lift_tube_length/2.0}" rpy="0 0 0"/>
+          <geometry><box size="${s} ${s} ${lift_tube_length}"/></geometry>
+          <material name="${'amr_grey' if index % 2 == 1 else 'amr_steel'}"/>
+        </visual>
+      </xacro:macro>
+      <xacro:tube x="${lift_mast_x}"/>
+      <xacro:tube x="${-lift_mast_x}"/>
+
+      <xacro:box_inertia m="${lift_stage_mass}" x="${2*lift_mast_x + s}" y="${s}" z="${lift_tube_length}">
+        <origin xyz="0 0 ${lift_tube_length/2.0}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+
+    <joint name="lift_stage${index}_joint" type="prismatic">
+      <parent link="${parent}"/>
+      <child link="lift_stage${index}_link"/>
+      <origin xyz="0 0 ${origin_z}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="0.0" upper="${lift_stage_stroke}" effort="2000.0" velocity="1.0"/>
+      <dynamics damping="20.0" friction="0.0"/>
+      <mimic joint="lift_joint" multiplier="${1.0/lift_stages}" offset="0.0"/>
+    </joint>
+
+    <!-- Gazebo: la etapa sigue la consigna h/4 publicada por lift_stage_relay.py -->
+    <gazebo>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>lift_stage${index}_joint</joint_name>
+        <topic>/amr/lift_stage_cmd</topic>
+        <p_gain>30000</p_gain>
+        <i_gain>5000</i_gain>
+        <i_max>500</i_max>
+        <i_min>-500</i_min>
+        <d_gain>800</d_gain>
+        <cmd_max>3000</cmd_max>
+        <cmd_min>-3000</cmd_min>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:macro name="amr_lift">
+
+    <!-- ===== Mástil telescópico (visual) ===== -->
+    <xacro:lift_stage index="1" parent="base_link"
+                      origin_z="${lift_tube_base_z - base_link_z}"/>
+    <xacro:lift_stage index="2" parent="lift_stage1_link" origin_z="0.0"/>
+    <xacro:lift_stage index="3" parent="lift_stage2_link" origin_z="0.0"/>
+    <xacro:lift_stage index="4" parent="lift_stage3_link" origin_z="0.0"/>
+
+    <!-- ===== Plataforma de carga ===== -->
+    <link name="lift_platform_link">
+      <!-- Placa de acero -->
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><box size="${platform_length} ${platform_width} ${platform_thickness}"/></geometry>
+        <material name="amr_dark"/>
+      </visual>
+      <!-- Tacos de goma antideslizante (apoyo de los largueros del palet) -->
+      <xacro:macro name="pad" params="y">
+        <visual>
+          <origin xyz="0 ${y} ${platform_thickness/2.0 + 0.004}" rpy="0 0 0"/>
+          <geometry><box size="${platform_length - 0.06} 0.10 0.008"/></geometry>
+          <material name="amr_rubber"/>
+        </visual>
+      </xacro:macro>
+      <xacro:pad y="0.0"/>
+      <xacro:pad y="${platform_width/2.0 - 0.08}"/>
+      <xacro:pad y="${-platform_width/2.0 + 0.08}"/>
+
+      <collision>
+        <origin xyz="0 0 0.004" rpy="0 0 0"/>
+        <geometry><box size="${platform_length} ${platform_width} ${platform_thickness + 0.008}"/></geometry>
+      </collision>
+
+      <xacro:box_inertia m="${platform_mass}" x="${platform_length}" y="${platform_width}" z="${platform_thickness}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+
+    <!-- Articulación actuada del elevador. Plegada: cara inferior de la placa
+         a ras del techo del chasis. -->
+    <joint name="lift_joint" type="prismatic">
+      <parent link="base_link"/>
+      <child link="lift_platform_link"/>
+      <origin xyz="0 0 ${chassis_bottom_z + chassis_height + platform_thickness/2.0 - base_link_z}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <!-- Tope físico 1 cm por debajo de la posición de trabajo 0.0: en DART, si la
+           articulación queda apoyada en su límite, el mando por velocidad se
+           bloquea. Bajando a 0.0 la plataforma la sostiene el control, no el tope. -->
+      <limit lower="${-lift_soft_margin}" upper="${lift_stroke}"
+             effort="${lift_max_effort}" velocity="${lift_max_velocity}"/>
+      <!-- Mando por velocidad + PID en lift_controller (el modo posición de
+           gz_ros2_control dejaba esta articulación bloqueada en DART) -->
+      <dynamics damping="500.0" friction="0.0"/>
+    </joint>
+
+    <!-- Frame de referencia en la superficie de contacto con el palet -->
+    <link name="load_surface_link"/>
+    <joint name="load_surface_joint" type="fixed">
+      <parent link="lift_platform_link"/>
+      <child link="load_surface_link"/>
+      <origin xyz="0 0 ${platform_thickness/2.0 + 0.008}" rpy="0 0 0"/>
+    </joint>
+
+    <gazebo reference="lift_platform_link">
+      <collision name="lift_platform_link_collision">
+        <surface>
+          <friction><ode><mu>1.2</mu><mu2>1.2</mu2></ode></friction>
+        </surface>
+      </collision>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

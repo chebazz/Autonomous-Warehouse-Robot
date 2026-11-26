@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!--
+  Rueda mecanum. Configuración en "X" vista desde arriba (rodillos a 45°):
+
+      FL  \\   //  FR
+      RL  //   \\  RR
+
+  En simulación la rueda usa colisión esférica con fricción anisótropa:
+  mu=1 en la dirección del eje del rodillo (fdir1, expresada en base_footprint)
+  y mu2=0 en la dirección perpendicular. Así se reproduce el
+  deslizamiento lateral del rodillo y el robot puede trasladarse en Y.
+
+  El encoder de cada rueda se publica en /joint_states
+  (posición [rad] y velocidad [rad/s]) a través de ros2_control.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:gz="http://gazebosim.org/schema">
+
+  <!-- prefix: front_left, front_right, rear_left, rear_right
+       x_sign / y_sign: +1 / -1
+       fdir: dirección de fricción en base_footprint ("1 -1 0" ó "1 1 0") -->
+  <xacro:macro name="mecanum_wheel" params="prefix x_sign y_sign fdir">
+
+    <link name="${prefix}_wheel_link">
+      <!-- Banda de rodillos -->
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+        <material name="amr_rubber"/>
+      </visual>
+      <!-- Tapa exterior del buje (indica giro en RViz) -->
+      <visual>
+        <origin xyz="0 ${y_sign*(wheel_width/2.0 + 0.003)} 0" rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius*0.55}" length="0.006"/></geometry>
+        <material name="amr_steel"/>
+      </visual>
+      <visual>
+        <origin xyz="${wheel_radius*0.35} ${y_sign*(wheel_width/2.0 + 0.007)} 0" rpy="0 0 0"/>
+        <geometry><box size="0.03 0.004 0.015"/></geometry>
+        <material name="amr_safety_red"/>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><sphere radius="${wheel_radius}"/></geometry>
+      </collision>
+
+      <xacro:cylinder_inertia m="${wheel_mass}" r="${wheel_radius}" h="${wheel_width}">
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      </xacro:cylinder_inertia>
+    </link>
+
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${prefix}_wheel_link"/>
+      <origin xyz="${x_sign*wheel_x} ${y_sign*wheel_y} 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="${wheel_max_effort}" velocity="${wheel_max_velocity}"/>
+      <dynamics damping="0.5" friction="0.1"/>
+    </joint>
+
+    <!-- Fricción anisótropa (sdformat fusiona este bloque con la colisión
+         generada desde el URDF, que se llama "<link>_collision") -->
+    <gazebo reference="${prefix}_wheel_link">
+      <collision name="${prefix}_wheel_link_collision">
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>0.0</mu2>
+              <fdir1 gz:expressed_in="base_footprint">${fdir}</fdir1>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1e7</kp>
+              <kd>1e4</kd>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

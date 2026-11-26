@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!--
+  Chasis del AMR: cuerpo de 1200 x 800 mm compuesto por 3 bloques, dejando
+  dos muescas en esquinas diagonales (delantera-izquierda y trasera-derecha)
+  donde se alojan los LiDAR, de modo que cada uno tenga 270° libres.
+
+  Vista superior (x hacia arriba):
+
+        +====+==========-+.....
+        |    |           | FL :  <- muesca LiDAR delantero
+        |    |           +====+
+        | C  |     A     |  B |
+        +====+           |    |
+        : RR |           |    |
+        :....+==========-+====+
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="amr_chassis">
+
+    <xacro:property name="body_cz" value="${chassis_bottom_z - base_link_z + chassis_height/2.0}"/>
+    <xacro:property name="side_len" value="${chassis_length - notch_size}"/>
+    <xacro:property name="mid_w"    value="${chassis_width - 2.0*notch_size}"/>
+    <xacro:property name="side_cy"  value="${chassis_width/2.0 - notch_size/2.0}"/>
+    <xacro:property name="top_z"    value="${chassis_bottom_z + chassis_height - base_link_z}"/>
+
+    <xacro:macro name="body_block" params="x y sx sy">
+      <visual>
+        <origin xyz="${x} ${y} ${body_cz}" rpy="0 0 0"/>
+        <geometry><box size="${sx} ${sy} ${chassis_height}"/></geometry>
+        <material name="amr_yellow"/>
+      </visual>
+      <collision>
+        <origin xyz="${x} ${y} ${body_cz}" rpy="0 0 0"/>
+        <geometry><box size="${sx} ${sy} ${chassis_height}"/></geometry>
+      </collision>
+    </xacro:macro>
+
+    <!-- base_footprint: proyección en el suelo del centro del robot -->
+    <link name="base_footprint"/>
+
+    <joint name="base_footprint_joint" type="fixed">
+      <parent link="base_footprint"/>
+      <child link="base_link"/>
+      <origin xyz="0 0 ${base_link_z}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="base_link">
+      <!-- A: franja central de longitud completa -->
+      <xacro:body_block x="0" y="0" sx="${chassis_length}" sy="${mid_w}"/>
+      <!-- B: franja derecha (deja libre la esquina trasera-derecha) -->
+      <xacro:body_block x="${notch_size/2.0}"  y="${-side_cy}" sx="${side_len}" sy="${notch_size}"/>
+      <!-- C: franja izquierda (deja libre la esquina delantera-izquierda) -->
+      <xacro:body_block x="${-notch_size/2.0}" y="${side_cy}"  sx="${side_len}" sy="${notch_size}"/>
+
+      <!-- Tapa superior (marco oscuro alrededor del hueco del elevador) -->
+      <visual>
+        <origin xyz="0 0 ${top_z + 0.002}" rpy="0 0 0"/>
+        <geometry><box size="${chassis_length - 0.02} ${mid_w} 0.004"/></geometry>
+        <material name="amr_dark"/>
+      </visual>
+
+      <!-- Bandas de parachoques (frontal y trasera) -->
+      <visual>
+        <origin xyz="${chassis_length/2.0 + 0.01} 0 ${chassis_bottom_z - base_link_z + 0.06}" rpy="0 0 0"/>
+        <geometry><box size="0.02 ${mid_w} 0.06"/></geometry>
+        <material name="amr_black"/>
+      </visual>
+      <visual>
+        <origin xyz="${-chassis_length/2.0 - 0.01} 0 ${chassis_bottom_z - base_link_z + 0.06}" rpy="0 0 0"/>
+        <geometry><box size="0.02 ${mid_w} 0.06"/></geometry>
+        <material name="amr_black"/>
+      </visual>
+
+      <!-- Setas de emergencia en las esquinas sin LiDAR (FR y RL) -->
+      <visual>
+        <origin xyz="${chassis_length/2.0 - 0.07} ${-chassis_width/2.0 + 0.07} ${top_z + 0.02}" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.025" length="0.04"/></geometry>
+        <material name="amr_safety_red"/>
+      </visual>
+      <visual>
+        <origin xyz="${-chassis_length/2.0 + 0.07} ${chassis_width/2.0 - 0.07} ${top_z + 0.02}" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.025" length="0.04"/></geometry>
+        <material name="amr_safety_red"/>
+      </visual>
+
+      <!-- Masa concentrada abajo (baterías), CoM a ~0.16 m del suelo -->
+      <xacro:box_inertia m="${chassis_mass}" x="${chassis_length}" y="${chassis_width}" z="${chassis_height}">
+        <origin xyz="0 0 ${body_cz - 0.05}" rpy="0 0 0"/>
+      </xacro:box_inertia>
+    </link>
+
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+  Parámetros geométricos y másicos del AMR.
+  Todas las unidades en SI (m, kg, rad, N, N·m).
+  Referencia de alturas: suelo (z=0) = base_footprint.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ===================== CHASIS ===================== -->
+  <!-- Huella = palet europeo EUR-EPAL 1200 x 800 mm -->
+  <xacro:property name="chassis_length" value="1.20"/>
+  <xacro:property name="chassis_width"  value="0.80"/>
+  <xacro:property name="chassis_bottom_z" value="0.06"/>   <!-- despeje al suelo -->
+  <xacro:property name="chassis_height" value="0.30"/>     <!-- techo del chasis a 0.36 m -->
+  <xacro:property name="chassis_mass"   value="450.0"/>    <!-- estructura + baterías + motores -->
+
+  <!-- Muescas en esquinas diagonales para los LiDAR (delantera-izq y trasera-der) -->
+  <xacro:property name="notch_size" value="0.16"/>
+
+  <!-- ===================== RUEDAS MECANUM ===================== -->
+  <xacro:property name="wheel_radius" value="0.10"/>       <!-- Ø200 mm, servicio pesado -->
+  <xacro:property name="wheel_width"  value="0.09"/>
+  <xacro:property name="wheel_mass"   value="12.0"/>
+  <xacro:property name="wheel_x"      value="0.45"/>       <!-- semi-batalla  (lx) -->
+  <xacro:property name="wheel_y"      value="0.30"/>       <!-- semi-vía      (ly) -->
+  <xacro:property name="wheel_max_effort"   value="250.0"/>  <!-- N·m en la rueda -->
+  <xacro:property name="wheel_max_velocity" value="15.0"/>   <!-- rad/s → 1.5 m/s -->
+
+  <!-- base_link a la altura del eje de las ruedas -->
+  <xacro:property name="base_link_z" value="${wheel_radius}"/>
+
+  <!-- ===================== ELEVADOR TELESCÓPICO ===================== -->
+  <!-- lift_joint: 1.00 m de carrera. Mástil visual de 4 etapas x 0.25 m -->
+  <xacro:property name="lift_stages"        value="4"/>
+  <xacro:property name="lift_stage_stroke"  value="0.25"/>
+  <xacro:property name="lift_tube_length"   value="0.28"/>   <!-- solape de 3 cm entre etapas -->
+  <xacro:property name="lift_tube_base_z"   value="0.07"/>   <!-- inicio de tubos dentro del chasis (desde suelo) -->
+  <xacro:property name="lift_mast_x"        value="0.30"/>   <!-- dos mástiles: delantero y trasero -->
+  <xacro:property name="lift_stage_mass"    value="3.0"/>    <!-- etapas visuales (masa real incluida en el chasis) -->
+  <xacro:property name="lift_max_effort"    value="20000.0"/> <!-- N (1000 kg carga + estructura, con margen) -->
+  <!-- Límite de articulación holgado; la velocidad real de elevación la fija la
+       trayectoria (lift_cmd.py, lift_nominal_speed) y el comando se satura a ±0.1 m/s
+       en ros2_control. -->
+  <xacro:property name="lift_max_velocity"  value="1.0"/>    <!-- m/s -->
+  <xacro:property name="lift_nominal_speed" value="0.05"/>   <!-- m/s de la plataforma (informativo) -->
+  <xacro:property name="lift_soft_margin"   value="0.01"/>   <!-- m bajo 0.0 hasta el tope físico (ver lift.xacro) -->
+
+  <!-- Plataforma de carga -->
+  <xacro:property name="platform_length" value="1.16"/>
+  <xacro:property name="platform_width"  value="0.76"/>
+  <xacro:property name="platform_thickness" value="0.04"/>
+  <xacro:property name="platform_mass"   value="60.0"/>
+  <xacro:property name="payload_max"     value="1000.0"/>
+
+  <!-- ===================== SENSORES ===================== -->
+  <xacro:property name="lidar_z"       value="0.22"/>   <!-- altura del plano de escaneo desde el suelo -->
+  <xacro:property name="lidar_radius"  value="0.05"/>
+  <xacro:property name="lidar_height"  value="0.08"/>
+  <xacro:property name="lidar_mass"    value="1.2"/>
+  <xacro:property name="lidar_fov"     value="${270.0 * pi / 180.0}"/>
+  <xacro:property name="lidar_samples" value="1081"/>   <!-- 0.25° de resolución -->
+  <xacro:property name="lidar_range_min" value="0.10"/>
+  <xacro:property name="lidar_range_max" value="25.0"/>
+  <xacro:property name="lidar_rate"    value="15"/>
+
+  <xacro:property name="imu_z"    value="0.20"/>        <!-- centro geométrico del AMR -->
+  <xacro:property name="imu_rate" value="100"/>
+
+</robot>

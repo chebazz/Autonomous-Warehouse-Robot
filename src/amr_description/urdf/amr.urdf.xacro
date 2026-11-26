@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+  AMR de elevación de palets - modelo principal
+  =============================================
+  Huella: 1200 x 800 mm (palet EUR)    Carga útil: 1000 kg
+  Tracción: 4 ruedas mecanum (omnidireccional)
+  Elevación: telescópico 4 etapas, 1.00 m de carrera
+  Sensores: 2 x LiDAR 270° (360° combinados), IMU central, encoders en ruedas
+
+  Árbol de frames:
+    base_footprint
+    └── base_link
+        ├── {front,rear}_{left,right}_wheel_link
+        ├── lidar_front_link / lidar_rear_link
+        ├── imu_link
+        └── lift_stage1..4_link → lift_platform_link → load_surface_link
+
+  Argumentos:
+    use_sim           true/false
+    controllers_file  ruta al YAML de controladores (solo con use_sim)
+-->
+<robot name="amr" xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:gz="http://gazebosim.org/schema">
+
+  <xacro:arg name="use_sim" default="false"/>
+  <xacro:arg name="controllers_file" default=""/>
+
+  <xacro:include filename="$(find amr_description)/urdf/components/properties.xacro"/>
+  <xacro:include filename="$(find amr_description)/urdf/components/materials_inertia.xacro"/>
+  <xacro:include filename="$(find amr_description)/urdf/components/chassis.xacro"/>
+  <xacro:include filename="$(find amr_description)/urdf/components/mecanum_wheel.xacro"/>
+  <xacro:include filename="$(find amr_description)/urdf/components/lift.xacro"/>
+  <xacro:include filename="$(find amr_description)/urdf/components/sensors.xacro"/>
+  <xacro:include filename="$(find amr_description)/urdf/components/ros2_control.xacro"/>
+
+  <!-- Chasis -->
+  <xacro:amr_chassis/>
+
+  <!-- Ruedas mecanum (configuración en X) -->
+  <xacro:mecanum_wheel prefix="front_left"  x_sign="1"  y_sign="1"  fdir="1 -1 0"/>
+  <xacro:mecanum_wheel prefix="front_right" x_sign="1"  y_sign="-1" fdir="1 1 0"/>
+  <xacro:mecanum_wheel prefix="rear_left"   x_sign="-1" y_sign="1"  fdir="1 1 0"/>
+  <xacro:mecanum_wheel prefix="rear_right"  x_sign="-1" y_sign="-1" fdir="1 -1 0"/>
+
+  <!-- Elevador y plataforma -->
+  <xacro:amr_lift/>
+
+  <!-- Sensores -->
+  <xacro:property name="lidar_cx" value="${chassis_length/2.0 - notch_size/2.0 + 0.01}"/>
+  <xacro:property name="lidar_cy" value="${chassis_width/2.0 - notch_size/2.0 + 0.01}"/>
+  <xacro:amr_lidar name="lidar_front" x="${lidar_cx}"  y="${lidar_cy}"  yaw="${pi/4}"/>
+  <xacro:amr_lidar name="lidar_rear"  x="${-lidar_cx}" y="${-lidar_cy}" yaw="${-3*pi/4}"/>
+  <xacro:amr_imu/>
+
+  <!-- ros2_control -->
+  <xacro:amr_ros2_control use_sim="$(arg use_sim)" controllers_file="$(arg controllers_file)"/>
+
+</robot>
