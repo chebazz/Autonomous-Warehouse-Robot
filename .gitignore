@@ -12,3 +12,7 @@ __pycache__/
 .idea/
 .claude/
 *.swp
+
+# Grafo serializado de slam_toolbox (pesado; lo regenera save_map.sh)
+*.posegraph
+src/amr_navigation/maps/*.data

@@ -51,9 +51,8 @@ map ─(AMCL / slam_toolbox)→ odom ─(EKF)→ base_footprint → base_link �
 ## Uso
 
 ```bash
-mkdir ~/amr_ws
-cd amr_ws
-git clone https://github.com/chebazz/Autonomous-Warehouse-Robot.git
+git clone https://github.com/chebazz/Autonomous-Warehouse-Robot.git ~/amr_ws
+cd ~/amr_ws
 colcon build --symlink-install
 source install/setup.bash
 
@@ -116,7 +115,7 @@ cd src/amr_gazebo/scripts
 python3 generate_warehouse.py --plot ../docs/warehouse_plano.png
 ```
 
-![plano](amr_gazebo/docs/warehouse_plano.png)
+![plano](src/amr_gazebo/docs/warehouse_plano.png)
 
 | Zona | Contenido |
 |---|---|
@@ -163,8 +162,11 @@ python3 generate_warehouse.py --plot ../docs/warehouse_plano.png
   cinta) y `make_keepout_map.py` crea `maps/warehouse_keepout.*`. **AMCL usa el
   mapa SLAM real** y **los costmaps usan el mapa con zonas prohibidas**
   (`/map_keepout`). `save_map.sh` regenera los dos.
+- **Grafo SLAM** (`warehouse.posegraph` / `.data`, ~86 MB) no se incluye en el
+  repo: solo sirve para continuar el mapeo con `slam_toolbox`. La navegación usa
+  los `.pgm`/`.yaml`. `save_map.sh` lo vuelve a generar en local.
 
-![mapa](amr_navigation/maps/warehouse_preview.png)
+![mapa](src/amr_navigation/maps/warehouse_preview.png)
 
 ## Gestor de tareas
 
