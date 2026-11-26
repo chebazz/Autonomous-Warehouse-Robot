@@ -51,7 +51,8 @@ map ─(AMCL / slam_toolbox)→ odom ─(EKF)→ base_footprint → base_link �
 ## Uso
 
 ```bash
-cd ~/Documents/amr_ws
+mkdir ~/amr_ws
+cd amr_ws
 colcon build --symlink-install
 source install/setup.bash
 
